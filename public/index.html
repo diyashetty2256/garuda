@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="ScamShield — India's scam intelligence dashboard. Detect scam messages, verify contacts, and explore scam heatmap data across India.">
+  <title>Garuda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ── Interactive Grid Background ── -->
+  <canvas id="gridCanvas"></canvas>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" width="28" height="28">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">ScamShield</span>
+        <span class="brand-tagline">Intelligence Dashboard</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard" id="navDashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="detector" id="navDetector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>Scam Detector</span>
+      </button>
+      <button class="nav-item" data-view="report" id="navReport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+        <span>Report Scam</span>
+      </button>
+      <button class="nav-item" data-view="about" id="navAbout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>More About Scams</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Pattern-based analysis.<br>Always verify independently.</p>
+    </div>
+  </aside>
+
+  <!-- ── Mobile Header ── -->
+  <header class="mobile-header" id="mobileHeader">
+    <button class="hamburger" id="hamburgerBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-brand">ScamShield</span>
+  </header>
+
+  <!-- ── Main Content ── -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ═══ VIEW: Dashboard ═══ -->
+    <section class="view active" id="viewDashboard">
+      <div class="view-header">
+        <h1>Scam Intelligence <span class="gradient-text">Dashboard</span></h1>
+        <p>Live scam report heatmap across India</p>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="dashboard-stats" id="dashboardStats">
+        <div class="dash-stat">
+          <div class="dash-stat-icon">📊</div>
+          <div class="dash-stat-info">
+            <span class="dash-stat-value" id="statTotalReports">—</span>
+            <span class="dash-stat-label">Total Reports</span>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon">🏙️</div>
+          <div class="dash-stat-info">
+            <span class="dash-stat-value" id="statCities">—</span>
+            <span class="dash-stat-label">Cities Tracked</span>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon">🔥</div>
+          <div class="dash-stat-info">
+            <span class="dash-stat-value" id="statTopCity">—</span>
+            <span class="dash-stat-label">Most Affected City</span>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon">🗺️</div>
+          <div class="dash-stat-info">
+            <span class="dash-stat-value" id="statTopState">—</span>
+            <span class="dash-stat-label">Most Affected State</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Container -->
+      <div class="map-wrapper">
+        <div id="indiaMap" class="india-map"></div>
+        <div class="map-legend">
+          <span class="legend-title">Report Density</span>
+          <div class="legend-bar">
+            <span>Low</span>
+            <div class="legend-gradient"></div>
+            <span>High</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: Scam Detector ═══ -->
+    <section class="view" id="viewDetector">
+      <div class="view-header">
+        <h1>Detect Scam Messages <span class="gradient-text">Instantly</span></h1>
+        <p>Paste any suspicious text — SMS, email, WhatsApp, DMs — and our engine will scan for <strong>fraud
+            patterns</strong>, <strong>phishing attempts</strong>, and <strong>manipulation tactics</strong>.</p>
+      </div>
+
+      <!-- Message Analyzer -->
+      <div class="input-card">
+        <div class="input-header">
+          <h3>Paste Suspicious Message</h3>
+          <span class="char-count" id="charCount">0 / 10,000</span>
+        </div>
+        <textarea id="messageInput"
+          placeholder="Paste the suspicious message here...&#10;&#10;Example: 'CONGRATULATIONS! You've won $1,000,000! Click here to claim: bit.ly/xyz. Send your SSN NOW before this expires!!!'"
+          rows="6" maxlength="10000"></textarea>
+        <div class="input-actions">
+          <div class="example-buttons">
+            <button class="btn-example" data-example="scam" id="exampleScam">Try Scam Example</button>
+            <button class="btn-example" data-example="safe" id="exampleSafe">Try Safe Example</button>
+          </div>
+          <button class="btn-analyze" id="analyzeBtn">
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="btn-icon">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Analyze Message
+            </span>
+            <span class="btn-loading">
+              <div class="spinner"></div>
+              Analyzing...
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lookup Section -->
+      <div class="lookup-section">
+        <div class="section-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">OR</span>
+          <span class="divider-line"></span>
+        </div>
+        <div class="input-card lookup-card">
+          <div class="input-header">
+            <h3>🔍 Verify a Number or Email</h3>
+          </div>
+          <p class="lookup-subtitle">Check if a phone number or email address has been reported as a scam.</p>
+          <div class="lookup-input-row">
+            <input type="text" id="lookupInput" class="lookup-input"
+              placeholder="e.g. +18005551234 or support@amaz0n-secure.com" autocomplete="off" />
+            <button class="btn-analyze btn-lookup" id="lookupBtn">
+              <span class="btn-text">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" class="btn-icon">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Verify
+              </span>
+              <span class="btn-loading">
+                <div class="spinner"></div>
+                Checking...
+              </span>
+            </button>
+          </div>
+          <div class="lookup-examples">
+            <span class="lookup-examples-label">Try:</span>
+            <button class="btn-example lookup-chip" data-lookup="+18005551234">📞 +1 800 555 1234</button>
+            <button class="btn-example lookup-chip" data-lookup="support@amaz0n-secure.com">📧 amaz0n-secure</button>
+            <button class="btn-example lookup-chip" data-lookup="prince_mohammed@diplomats.ng">📧 diplomats.ng</button>
+            <button class="btn-example lookup-chip" data-lookup="+15551234567">📞 Safe Number</button>
+          </div>
+        </div>
+
+        <!-- Lookup Result -->
+        <div class="lookup-result" id="lookupResult" style="display: none;">
+          <div class="lookup-result-card" id="lookupResultCard">
+            <div class="lookup-result-icon" id="lookupResultIcon"></div>
+            <div class="lookup-result-body">
+              <h3 id="lookupResultTitle"></h3>
+              <p class="lookup-result-query" id="lookupResultQuery"></p>
+              <p class="lookup-result-desc" id="lookupResultDesc"></p>
+              <div class="lookup-result-meta" id="lookupResultMeta"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <section class="results-section" id="resultsSection" style="display: none;">
+        <div class="risk-gauge-card" id="riskGaugeCard">
+          <div class="risk-gauge-header">
+            <h3>Risk Assessment</h3>
+            <span class="risk-badge" id="riskBadge">Low</span>
+          </div>
+          <div class="gauge-container">
+            <div class="gauge-track">
+              <div class="gauge-fill" id="gaugeFill"></div>
+            </div>
+            <div class="gauge-labels">
+              <span>Safe</span><span>Low</span><span>Medium</span><span>High</span><span>Critical</span>
+            </div>
+            <div class="risk-score" id="riskScore">
+              <span class="score-number">0</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div class="risk-summary" id="riskSummary"></div>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+          <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg></div>
+            <div class="stat-value" id="statWarnings">0</div>
+            <div class="stat-label">Warning Signals</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg></div>
+            <div class="stat-value" id="statPatterns">0</div>
+            <div class="stat-label">Patterns Matched</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg></div>
+            <div class="stat-value" id="statRiskLevel">—</div>
+            <div class="stat-label">Risk Level</div>
+          </div>
+        </div>
+
+        <div class="warnings-container" id="warningsContainer">
+          <h3 class="warnings-title" id="warningsTitle">Warning Signals Detected</h3>
+          <div class="warnings-grid" id="warningsGrid"></div>
+        </div>
+
+        <div class="safe-message" id="safeMessage" style="display: none;">
+          <div class="safe-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round" width="48" height="48">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg></div>
+          <h3>No Scam Patterns Detected</h3>
+          <p>This message appears to be safe. However, always stay cautious with unexpected messages from unknown
+            senders.</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- ═══ VIEW: Report Scam ═══ -->
+    <section class="view" id="viewReport">
+      <div class="view-header">
+        <h1>Report a <span class="gradient-text">Scam</span></h1>
+        <p>Help protect others by reporting fraudulent phone numbers, emails, or websites you've encountered.</p>
+      </div>
+
+      <div class="input-card report-card">
+        <form id="reportForm" class="report-form">
+          <div class="form-group">
+            <label for="reportType">Type of Scam Contact</label>
+            <select id="reportType" required>
+              <option value="">Select type...</option>
+              <option value="phone">📞 Phone Number</option>
+              <option value="email">📧 Email Address</option>
+              <option value="website">🌐 Website URL</option>
+              <option value="social">💬 Social Media Account</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="reportContact">Phone Number / Email / URL</label>
+            <input type="text" id="reportContact" placeholder="e.g. +91 98765 43210 or scam@fake.com" required
+              autocomplete="off" />
+          </div>
+
+          <div class="form-group">
+            <label for="reportCategory">Scam Category</label>
+            <select id="reportCategory" required>
+              <option value="">Select category...</option>
+              <option value="phishing">Phishing / Identity Theft</option>
+              <option value="lottery">Lottery / Prize Scam</option>
+              <option value="impersonation">Impersonation / Fake Authority</option>
+              <option value="investment">Investment / Crypto Scam</option>
+              <option value="romance">Romance Scam</option>
+              <option value="tech-support">Tech Support Scam</option>
+              <option value="job">Job / Employment Scam</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="reportDescription">Description</label>
+            <textarea id="reportDescription" rows="4"
+              placeholder="Describe what happened, what the scammer said or did..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn-analyze btn-report" id="reportSubmitBtn">
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="btn-icon">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+              Submit Report
+            </span>
+            <span class="btn-loading">
+              <div class="spinner"></div>
+              Submitting...
+            </span>
+          </button>
+        </form>
+
+        <div class="report-success" id="reportSuccess" style="display: none;">
+          <div class="success-icon">✅</div>
+          <h3>Report Submitted Successfully!</h3>
+          <p>Thank you for helping to protect others. Your report has been recorded and will be reviewed.</p>
+          <button class="btn-example" id="reportNewBtn" style="margin-top: 16px;">Submit Another Report</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: More About Scams ═══ -->
+    <section class="view" id="viewAbout">
+      <div class="view-header">
+        <h1>More About <span class="gradient-text">Scams</span></h1>
+        <p>Stay informed. Understanding how scams work is your best defense.</p>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-card-icon">🎣</div>
+          <h3>Phishing Attacks</h3>
+          <p>Scammers impersonate trusted companies via email, SMS, or fake websites to steal your login credentials,
+            credit card numbers, or personal data. Always verify the sender's address and never click suspicious links.
+          </p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">📞</div>
+          <h3>Vishing (Voice Phishing)</h3>
+          <p>Fraudsters call pretending to be from banks, government agencies (like the IRS or RBI), or tech companies.
+            They create panic about "suspicious activity" to extract sensitive information or payments.</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">🏆</div>
+          <h3>Lottery & Prize Scams</h3>
+          <p>You receive a message claiming you've won a big prize or lottery you never entered. The catch: you must pay
+            a "processing fee" or share bank details. Legitimate lotteries never ask winners to pay upfront.</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">💸</div>
+          <h3>Investment & Crypto Scams</h3>
+          <p>Promises of guaranteed high returns, "risk-free" investments, or crypto multiplier schemes. If it sounds
+            too good to be true, it is. Always verify with SEBI-registered advisors.</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">💼</div>
+          <h3>Job Scams</h3>
+          <p>Fake job offers requiring upfront "training fees" or "equipment deposits." Real employers never ask
+            candidates to pay money. Verify company details on official websites before sharing personal information.
+          </p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">❤️</div>
+          <h3>Romance Scams</h3>
+          <p>Scammers create fake dating profiles and build emotional connections over weeks or months. Eventually they
+            request money for "emergencies," "travel," or "medical bills." Never send money to people you haven't met in
+            person.</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">🛡️</div>
+          <h3>How to Protect Yourself</h3>
+          <p>• Never share OTPs, passwords, or PINs<br>• Verify caller/sender identity independently<br>• Don't click
+            links in unsolicited messages<br>• Enable 2FA on all accounts<br>• Report scams at cybercrime.gov.in</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-card-icon">📱</div>
+          <h3>UPI & Digital Payment Scams</h3>
+          <p>Scammers send fake "collect request" links or QR codes. Remember: you <strong>never need to scan a QR code
+              or enter your PIN to receive money.</strong> If someone asks you to do this, it's a scam.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet Heat Plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
