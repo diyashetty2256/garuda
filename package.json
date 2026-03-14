@@ -1,0 +1,13 @@
+{
+  "name": "scam-language-detector",
+  "version": "1.0.0",
+  "description": "Analyze suspicious messages for scam warning signals",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
